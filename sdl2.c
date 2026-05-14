@@ -6,49 +6,64 @@
 void to_grayscale(SDL_Surface *surface)
 {
     uint8_t *pixels = (uint8_t *)surface->pixels;
-    for (int x = 0; x < surface->w; x++)
+
+    for (int y = 0; y < surface->h; y++)
     {
-        for (int y = 0; y < surface->h; y++)
+        uint8_t *row =
+            pixels + y * surface->pitch;
+
+        for (int x = 0; x < surface->w; x++)
         {
-            for (int bit = 0; bit < 3; bit++)
-            {
-            }
+            uint8_t *p = row + x * 3;
+
+            uint8_t r = p[0];
+            uint8_t g = p[1];
+            uint8_t b = p[2];
+
+            uint8_t gray =
+                0.299 * r +
+                0.587 * g +
+                0.114 * b;
+
+            p[0] = gray;
+            p[1] = gray;
+            p[2] = gray;
         }
     }
-    /*for (int i = 0; i < surface->w * surface->h * 3; i += 3)
-    {
-        uint8_t r = pixels[i];
-        uint8_t g = pixels[i + 1];
-        uint8_t b = pixels[i + 2];
-
-        uint8_t gray = 0.299 * r + 0.587 * g + 0.114 * b;
-
-        pixels[i] = gray;
-        pixels[i + 1] = gray;
-        pixels[i + 2] = gray;
-    }*/
 }
 
 void to_black_and_white(SDL_Surface *surface, int threshold)
 {
     uint8_t *pixels = (uint8_t *)surface->pixels;
-    for (int i = 0; i < surface->w * surface->h * 3; i += 3)
+
+    for (int y = 0; y < surface->h; y++)
     {
-        uint8_t r = pixels[i];
-        uint8_t g = pixels[i + 1];
-        uint8_t b = pixels[i + 2];
+        uint8_t *row =
+            pixels + y * surface->pitch;
 
-        uint8_t gray = 0.299 * r + 0.587 * g + 0.114 * b;
-        // uint8_t bl = (gray > threshold) ? 255 : 0;
-        uint8_t bl = 0;
-        if (gray > threshold)
-            bl = 255;
-        else
-            bl = 0;
+        for (int x = 0; x < surface->w; x++)
+        {
+            uint8_t *p = row + x * 3;
 
-        pixels[i] = bl;
-        pixels[i + 1] = bl;
-        pixels[i + 2] = bl;
+            uint8_t r = p[0];
+            uint8_t g = p[1];
+            uint8_t b = p[2];
+
+            uint8_t gray =
+                0.299 * r +
+                0.587 * g +
+                0.114 * b;
+
+            uint8_t bl = 0;
+            if (gray > threshold)
+                bl = 255;
+            else
+                bl = 0;
+
+            p[0] = bl;
+            p[1] = bl;
+            p[2] = bl;
+        }
     }
 }
 
@@ -93,12 +108,12 @@ int main()
 {
     SDL_Init(SDL_INIT_VIDEO);
 
-    SDL_Surface *load_surface = IMG_Load("images/rose-flower.jpg");
+    SDL_Surface *load_surface = IMG_Load("images/fleur.jpg");
     SDL_Surface *surface = SDL_ConvertSurfaceFormat(load_surface, SDL_PIXELFORMAT_RGB24, 0);
     SDL_FreeSurface(load_surface);
-    to_grayscale(surface);
-    // to_black_and_white(surface, 128);
-    //   sobel(surface);
+    // to_grayscale(surface);
+    to_black_and_white(surface, 128);
+    sobel(surface);
 
     SDL_Window *window = SDL_CreateWindow("ocr", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, surface->w, surface->h, 0);
     SDL_Renderer *render = SDL_CreateRenderer(window, -1, 0);
