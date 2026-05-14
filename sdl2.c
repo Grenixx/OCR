@@ -69,38 +69,77 @@ void to_black_and_white(SDL_Surface *surface, int threshold)
 
 void sobel(SDL_Surface *surface)
 {
-    uint8_t *pixels = (uint8_t *)surface->pixels;
-    uint8_t *sobel_pixels = calloc(surface->w * surface->h * 3, sizeof(uint8_t));
+    uint8_t *pixels = surface->pixels;
 
-    int horizontal_ker[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
-    int verctical_ker[9] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
-    // on ne traite pas les bord car notre kernel de 3x3 sort de limage pour les pixel en bordure d image
-    for (int x = 1; x < surface->w - 1; x++)
-    {
-        for (int y = 1; y < surface->h - 1; y++)
+    uint8_t *sobel_pixels =
+        calloc(surface->pitch * surface->h,
+               sizeof(uint8_t));
+
+    int horizontal_ker[9] =
         {
-            int ker_sum_h = 0;
-            int ker_sum_v = 0;
-            int pos_in_ker_h = 0;
-            int pos_in_ker_v = 0;
-            for (int k = -1; k < 2; k++)
+            -1, 0, 1,
+            -2, 0, 2,
+            -1, 0, 1};
+
+    int vertical_ker[9] =
+        {
+            -1, -2, -1,
+            0, 0, 0,
+            1, 2, 1};
+
+    // on ignore les bords
+    for (int y = 1; y < surface->h - 1; y++)
+    {
+        for (int x = 1; x < surface->w - 1; x++)
+        {
+            int gx = 0;
+            int gy = 0;
+
+            int pos = 0;
+
+            // parcours kernel 3x3
+            for (int yy = -1; yy <= 1; yy++)
             {
-                for (int l = -1; l < 2; l++)
+                uint8_t *kernel_row =
+                    pixels + (y + yy) * surface->pitch;
+
+                for (int xx = -1; xx <= 1; xx++)
                 {
-                    int index = (((y + k) * surface->w) + (x + l)) * 3;
-                    ker_sum_h += horizontal_ker[pos_in_ker_h++] * pixels[index];
-                    ker_sum_v += verctical_ker[pos_in_ker_v++] * pixels[index];
+                    uint8_t *p =
+                        kernel_row + (x + xx) * 3;
+
+                    uint8_t pixel = p[0];
+
+                    gx += horizontal_ker[pos] * pixel;
+                    gy += vertical_ker[pos] * pixel;
+
+                    pos++;
                 }
             }
-            int mag = sqrt((ker_sum_h * ker_sum_h) + (ker_sum_v * ker_sum_v));
-            int out = (y * surface->w + x) * 3;
 
-            sobel_pixels[out] = mag;
-            sobel_pixels[out + 1] = mag;
-            sobel_pixels[out + 2] = mag;
+            int mag =
+                sqrt(gx * gx + gy * gy);
+
+            if (mag > 255)
+                mag = 255;
+
+            uint8_t *out_row =
+                sobel_pixels + y * surface->pitch;
+
+            uint8_t *out =
+                out_row + x * 3;
+
+            out[0] = mag;
+            out[1] = mag;
+            out[2] = mag;
         }
     }
-    memcpy(pixels, sobel_pixels, surface->w * surface->h * 3);
+
+    memcpy(
+        pixels,
+        sobel_pixels,
+        surface->pitch * surface->h);
+
     free(sobel_pixels);
 }
 
