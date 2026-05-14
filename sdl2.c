@@ -117,7 +117,7 @@ void sobel(SDL_Surface *surface)
                 }
             }
 
-            int mag =
+            double mag =
                 sqrt(gx * gx + gy * gy);
 
             if (mag > 255)
@@ -147,7 +147,7 @@ int main()
 {
     SDL_Init(SDL_INIT_VIDEO);
 
-    SDL_Surface *load_surface = IMG_Load("images/fleur.jpg");
+    SDL_Surface *load_surface = IMG_Load("images/rose-flower.png");
     SDL_Surface *surface = SDL_ConvertSurfaceFormat(load_surface, SDL_PIXELFORMAT_RGB24, 0);
     SDL_FreeSurface(load_surface);
     // to_grayscale(surface);
