@@ -1,10 +1,21 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <stdlib.h>
+#include <math.h>
 
 void to_grayscale(SDL_Surface *surface)
 {
     uint8_t *pixels = (uint8_t *)surface->pixels;
-    for (int i = 0; i < surface->w * surface->h * 3; i += 3)
+    for (int x = 0; x < surface->w; x++)
+    {
+        for (int y = 0; y < surface->h; y++)
+        {
+            for (int bit = 0; bit < 3; bit++)
+            {
+            }
+        }
+    }
+    /*for (int i = 0; i < surface->w * surface->h * 3; i += 3)
     {
         uint8_t r = pixels[i];
         uint8_t g = pixels[i + 1];
@@ -15,7 +26,7 @@ void to_grayscale(SDL_Surface *surface)
         pixels[i] = gray;
         pixels[i + 1] = gray;
         pixels[i + 2] = gray;
-    }
+    }*/
 }
 
 void to_black_and_white(SDL_Surface *surface, int threshold)
@@ -41,45 +52,53 @@ void to_black_and_white(SDL_Surface *surface, int threshold)
     }
 }
 
-void sobel(SDL_surface *surface)
+void sobel(SDL_Surface *surface)
 {
     uint8_t *pixels = (uint8_t *)surface->pixels;
-    uint8_t *sobel_pixels;
-    int ker_sum_h = 0;
-    int ker_sum_v = 0;
-    // int horizontal_ker[3][3] = {{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}};
-    // int verctical_ker[3][3] = {{-1, -2, -1}, {0, 0, 0}, {1, 2, 1}};
+    uint8_t *sobel_pixels = calloc(surface->w * surface->h * 3, sizeof(uint8_t));
+
     int horizontal_ker[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
     int verctical_ker[9] = {-1, -2, -1, 0, 0, 0, 1, 2, 1};
     // on ne traite pas les bord car notre kernel de 3x3 sort de limage pour les pixel en bordure d image
-    for (int i = 1; i < surface->w - 1; i++)
+    for (int x = 1; x < surface->w - 1; x++)
     {
-        for (int j = 1; j < surface->h - 1; j++)
+        for (int y = 1; y < surface->h - 1; y++)
         {
-            // ker_sum_h += horizontal_ker[0][0] * pixels[(i - 1) * (j - 1)];
-            // ker_sum_v += verctical_ker[0][0] * pixels[(i - 1) * (j - 1)];
+            int ker_sum_h = 0;
+            int ker_sum_v = 0;
             int pos_in_ker_h = 0;
             int pos_in_ker_v = 0;
             for (int k = -1; k < 2; k++)
             {
                 for (int l = -1; l < 2; l++)
                 {
-                    ker_sum_h += horizontal_ker[pos_in_ker_h++] * pixels[(i + k) * (j + l)];
-                    ker_sum_v += verctical_ker[pos_in_ker_v++] * pixels[(i + k) * (j + l)];
+                    int index = (((y + k) * surface->w) + (x + l)) * 3;
+                    ker_sum_h += horizontal_ker[pos_in_ker_h++] * pixels[index];
+                    ker_sum_v += verctical_ker[pos_in_ker_v++] * pixels[index];
                 }
             }
+            int mag = sqrt((ker_sum_h * ker_sum_h) + (ker_sum_v * ker_sum_v));
+            int out = (y * surface->w + x) * 3;
+
+            sobel_pixels[out] = mag;
+            sobel_pixels[out + 1] = mag;
+            sobel_pixels[out + 2] = mag;
         }
     }
+    memcpy(pixels, sobel_pixels, surface->w * surface->h * 3);
+    free(sobel_pixels);
 }
 
 int main()
 {
     SDL_Init(SDL_INIT_VIDEO);
 
-    SDL_Surface *load_surface = IMG_Load("images/A.jpg");
+    SDL_Surface *load_surface = IMG_Load("images/rose-flower.jpg");
     SDL_Surface *surface = SDL_ConvertSurfaceFormat(load_surface, SDL_PIXELFORMAT_RGB24, 0);
     SDL_FreeSurface(load_surface);
-    to_black_and_white(surface, 128);
+    to_grayscale(surface);
+    // to_black_and_white(surface, 128);
+    //   sobel(surface);
 
     SDL_Window *window = SDL_CreateWindow("ocr", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, surface->w, surface->h, 0);
     SDL_Renderer *render = SDL_CreateRenderer(window, -1, 0);
