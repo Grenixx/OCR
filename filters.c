@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include "filters.h"
+
 void to_grayscale(SDL_Surface *surface)
 {
     uint8_t *pixels = (uint8_t *)surface->pixels;
@@ -65,6 +67,52 @@ void to_black_and_white(SDL_Surface *surface, int threshold)
             p[2] = bl;
         }
     }
+}
+
+void gauss_blur(SDL_Surface *surface)
+{
+    uint8_t *pixels = surface->pixels;
+    uint8_t *blur_pixels = calloc(surface->pitch * surface->h, sizeof(uint8_t));
+
+    int gauss_ker[9] =
+        {
+            1, 2, 1,
+            2, 4, 2,
+            1, 2, 1};
+
+    // on ignore les bords
+    for (int y = 1; y < surface->h - 1; y++)
+    {
+        for (int x = 1; x < surface->w - 1; x++)
+        {
+            int Rblur_sum = 0;
+            int Gblur_sum = 0;
+            int Bblur_sum = 0;
+            int pos = 0;
+            // parcours kernel 3x3
+            for (int yy = -1; yy <= 1; yy++)
+            {
+                uint8_t *kernel_row = pixels + (y + yy) * surface->pitch;
+
+                for (int xx = -1; xx <= 1; xx++)
+                {
+                    uint8_t *p = kernel_row + (x + xx) * 3;
+                    Rblur_sum += gauss_ker[pos] * p[0];
+                    Gblur_sum += gauss_ker[pos] * p[1];
+                    Bblur_sum += gauss_ker[pos] * p[2];
+                    pos++;
+                }
+            }
+            uint8_t *out_row = blur_pixels + y * surface->pitch;
+            uint8_t *out = out_row + x * 3;
+
+            out[0] = Rblur_sum /= 16; // c est le kernel * 1/16 pour le blur
+            out[1] = Gblur_sum /= 16;
+            out[2] = Bblur_sum /= 16;
+        }
+    }
+    memcpy(pixels, blur_pixels, surface->pitch * surface->h);
+    free(blur_pixels);
 }
 
 void sobel(SDL_Surface *surface)
@@ -143,27 +191,10 @@ void sobel(SDL_Surface *surface)
     free(sobel_pixels);
 }
 
-int main()
+void apply_filters(SDL_Surface *surface)
 {
-    SDL_Init(SDL_INIT_VIDEO);
-
-    SDL_Surface *load_surface = IMG_Load("images/rose-flower.png");
-    SDL_Surface *surface = SDL_ConvertSurfaceFormat(load_surface, SDL_PIXELFORMAT_RGB24, 0);
-    SDL_FreeSurface(load_surface);
-    // to_grayscale(surface);
+    for (int i = 0; i < 5; i++)
+        gauss_blur(surface);
     to_black_and_white(surface, 128);
     sobel(surface);
-
-    SDL_Window *window = SDL_CreateWindow("ocr", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, surface->w, surface->h, 0);
-    SDL_Renderer *render = SDL_CreateRenderer(window, -1, 0);
-    SDL_Texture *texture = SDL_CreateTexture(render, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, surface->w, surface->h);
-    SDL_UpdateTexture(texture, NULL, surface->pixels, surface->pitch);
-    SDL_RenderCopy(render, texture, NULL, NULL);
-    SDL_RenderPresent(render);
-    SDL_Delay(2000);
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
-    SDL_DestroyRenderer(render);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
 }
