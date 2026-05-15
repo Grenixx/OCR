@@ -1,10 +1,10 @@
 #include "stack.h"
 
-struct stack *stack_push(struct stack *s, struct t_point *p)
+struct stack *stack_push(struct stack *s, void *e)
 {
     struct stack *new = malloc(sizeof(struct stack));
     new->next = NULL;
-    new->point = p;
+    new->data = e;
     if (s == NULL)
         return new;
     new->next = s;
@@ -26,12 +26,11 @@ void stack_destroy(struct stack **s)
         return;
     while (*s)
     {
-        free((*s)->point);
         *s = stack_pop(*s);
     }
 }
 
-struct t_point *stack_peek(struct stack *s)
+void *stack_peek(struct stack *s)
 {
-    return s->point;
+    return s->data;
 }

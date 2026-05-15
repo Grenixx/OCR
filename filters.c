@@ -193,7 +193,7 @@ void sobel(SDL_Surface *surface)
 
 void apply_filters(SDL_Surface *surface)
 {
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 1; i++)
         gauss_blur(surface);
     to_black_and_white(surface, 128);
     sobel(surface);

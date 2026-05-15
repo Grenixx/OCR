@@ -2,16 +2,20 @@
 #include <SDL2/SDL_image.h>
 #include <stdlib.h>
 #include <math.h>
+
 #include "filters.h"
+#include "group_detection.h"
 
 int main()
 {
     SDL_Init(SDL_INIT_VIDEO);
 
-    SDL_Surface *load_surface = IMG_Load("images/alphabet.png");
+    SDL_Surface *load_surface = IMG_Load("images/A.jpg");
+    // SDL_Surface *load_surface = IMG_Load("images/alphabet.png");
     SDL_Surface *surface = SDL_ConvertSurfaceFormat(load_surface, SDL_PIXELFORMAT_RGB24, 0);
     SDL_FreeSurface(load_surface);
     apply_filters(surface);
+    make_group(surface);
 
     SDL_Window *window = SDL_CreateWindow("ocr", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, surface->w, surface->h, 0);
     SDL_Renderer *render = SDL_CreateRenderer(window, -1, 0);
