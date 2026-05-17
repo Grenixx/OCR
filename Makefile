@@ -24,7 +24,6 @@ knn_test: knn
 
 knn: knn.c knn.h
 	gcc $(FLAGS) knn.c -o knn -lSDL2 -lSDL2_image -lm
-	./knn
 
 ocr: ocr.c filters.o group_detection.o stack.o knn.o
 	gcc $(FLAGS) $^ -o ocr -lSDL2 -lSDL2_image -lm
