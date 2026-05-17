@@ -22,6 +22,12 @@ int dist(SDL_Surface *s1, SDL_Surface *s2)
     return sqrt(sum);
 }
 
+// cree un struct dictionaire et stocker les image surface * , et leur dist
+// cree un list de surface pour stocker nos image X_train y_train(les labels)
+SDL_surface *load_images_in_list(char *filepath, int nb_img)
+{
+}
+
 int main()
 {
     SDL_Surface *load_surface = IMG_Load("images/A.png");
