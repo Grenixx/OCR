@@ -22,6 +22,18 @@ struct bounding_box *bounding_box_init(int xmin, int xmax, int ymin, int ymax)
     return box;
 }
 
+void destroy_bb_box_and_stack(struct stack **bb_stack)
+{
+    if (!bb_stack)
+        return;
+    while (*bb_stack)
+    {
+        struct bounding_box *box = (struct bounding_box *)stack_peek(*bb_stack);
+        free(box);
+        *bb_stack = stack_pop(*bb_stack);
+    }
+}
+
 struct bounding_box *flood_fill(SDL_Surface *surface, int *is_visited, struct t_point *point_depart)
 {
     uint8_t *px = (uint8_t *)surface->pixels;
@@ -29,7 +41,6 @@ struct bounding_box *flood_fill(SDL_Surface *surface, int *is_visited, struct t_
     struct bounding_box *box = bounding_box_init(point_depart->x, point_depart->x, point_depart->y, point_depart->y);
     while (s)
     {
-
         struct t_point *point = (struct t_point *)stack_peek(s);
         s = stack_pop(s);
         if (is_visited[point->y * surface->w + point->x])
@@ -82,9 +93,10 @@ void show_box_corner(SDL_Surface *surface, struct bounding_box *box)
 void show_box(SDL_Surface *surface, struct stack *bb_stack)
 {
     uint8_t *px = (uint8_t *)surface->pixels;
-    while (bb_stack)
+    struct stack *dummy = bb_stack;
+    while (dummy)
     {
-        struct bounding_box *box = (struct bounding_box *)stack_peek(bb_stack);
+        struct bounding_box *box = (struct bounding_box *)stack_peek(dummy);
         for (int y = box->ymin; y < box->ymax; y++)
             px[y * surface->pitch + box->xmin * 3] = 255;
 
@@ -97,7 +109,7 @@ void show_box(SDL_Surface *surface, struct stack *bb_stack)
         for (int x = box->xmin; x < box->xmax; x++)
             px[box->ymax * surface->pitch + x * 3] = 255;
 
-        bb_stack = stack_pop(bb_stack);
+        dummy = dummy->next;
     }
 }
 

@@ -2,20 +2,28 @@
 #include <SDL2/SDL_image.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdio.h>
 
 #include "filters.h"
 #include "group_detection.h"
+#include "knn.h"
 
 int main()
 {
     SDL_Init(SDL_INIT_VIDEO);
 
-    SDL_Surface *load_surface = IMG_Load("images/A.jpg");
-    // SDL_Surface *load_surface = IMG_Load("images/alphabet.png");
+    SDL_Surface *load_surface = IMG_Load("images/A.png");
     SDL_Surface *surface = SDL_ConvertSurfaceFormat(load_surface, SDL_PIXELFORMAT_RGB24, 0);
     SDL_FreeSurface(load_surface);
-    apply_filters(surface);
-    make_group(surface);
+
+    SDL_Surface *load_surface2 = IMG_Load("images/A2.png");
+    SDL_Surface *surface2 = SDL_ConvertSurfaceFormat(load_surface2, SDL_PIXELFORMAT_RGB24, 0);
+    SDL_FreeSurface(load_surface2);
+
+    // apply_filters(surface);
+    // struct stack *bb_grp = make_group(surface);
+    // destroy_bb_box_and_stack(&bb_grp);
+    // printf("%d\n", dist(surface, surface));
 
     SDL_Window *window = SDL_CreateWindow("ocr", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, surface->w, surface->h, 0);
     SDL_Renderer *render = SDL_CreateRenderer(window, -1, 0);
@@ -25,6 +33,7 @@ int main()
     SDL_RenderPresent(render);
     SDL_Delay(2000);
     SDL_FreeSurface(surface);
+    SDL_FreeSurface(surface2);
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(render);
     SDL_DestroyWindow(window);
