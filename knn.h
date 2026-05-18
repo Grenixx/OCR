@@ -11,6 +11,12 @@ struct t_sample
     char label;
 };
 
+struct t_dist_label
+{
+    int dist;
+    char label;
+};
+
 int dist(SDL_Surface *s1, SDL_Surface *s2);
 
 // prend des image dans les dossier et les stock dans un struct t_sample
@@ -23,6 +29,6 @@ int dist(SDL_Surface *s1, SDL_Surface *s2);
 //         B/
 //             000001.png
 //             ...
-// SDL_surface *load_images_in_list(char *filepath, int nb_img);
+struct t_sample **load_images_from_trainset(char *dirpath, int nb_of_image_per_class);
 
 #endif // KNN_H
